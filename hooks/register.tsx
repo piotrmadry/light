@@ -1,5 +1,5 @@
 import { atom, read, update } from 'claude-code'
-import type { EngineInterface as Engine, Register, SessionContextUsage, SessionCost, SessionRateLimit, TurnUsage } from 'claude-code'
+import type { EngineInterface as Engine, Register, SessionContextUsage, SessionCost, SessionRateLimit, Timer, TurnUsage } from 'claude-code'
 
 import type { MeterView } from '../types'
 
@@ -9,9 +9,12 @@ const WARM_CONTEXT = 100_000
 const LIMIT_WARN = 50
 const LIMIT_BAD = 80
 const WIDE_COLUMNS = 90
+// Limits only move when a response reports them: a timer at the next reset catches the window starting over
+// while idle, and an hourly re-read catches anything else.
+const REFRESH_MS = 60 * 60 * 1000
 
 type Snapshot = { context?: SessionContextUsage; rateLimits: SessionRateLimit[]; cost?: SessionCost }
-type Meter = { snap: Snapshot; lastTurn?: TurnUsage }
+type Meter = { snap: Snapshot; lastTurn?: TurnUsage; atReset?: Timer }
 type Level = 'success' | 'warning' | 'error'
 
 const view = atom({ plugin: 'light', key: 'view' } as const, null)
@@ -26,7 +29,13 @@ function inputOf(u: TurnUsage) {
   return u.input_tokens + u.cache_read_input_tokens + u.cache_creation_input_tokens
 }
 
-export function toView(m: Meter): MeterView {
+// A window past its reset time starts over at zero, even before a response says so.
+function percentOf(r: SessionRateLimit, now: number) {
+  const resetsAt = r.resetsAt === undefined ? NaN : Date.parse(r.resetsAt)
+  return resetsAt <= now ? 0 : r.percentUsed
+}
+
+export function toView(m: Meter, now: number): MeterView {
   const u = m.lastTurn
   const input = u ? inputOf(u) : 0
   return {
@@ -34,7 +43,7 @@ export function toView(m: Meter): MeterView {
     percent: m.snap.context?.percent,
     limits: m.snap.rateLimits
       .filter(r => LIMIT_LABEL[r.kind])
-      .map(r => ({ label: LIMIT_LABEL[r.kind] ?? r.kind, percent: r.percentUsed })),
+      .map(r => ({ label: LIMIT_LABEL[r.kind] ?? r.kind, percent: percentOf(r, now) })),
     cacheReused: u && input > 0 ? Math.round((100 * u.cache_read_input_tokens) / input) : undefined,
     cacheRebuilt: u && input > 0 && u.cache_creation_input_tokens > 0.5 * input ? u.cache_creation_input_tokens : undefined,
     usd: m.snap.cost?.usd,
@@ -51,18 +60,31 @@ export function bar(percent: number, cells: number) {
 }
 
 async function draw($: Engine, m: Meter) {
-  await update($, view, () => toView(m))
+  const now = await $.clock.now()
+  const next = toView(m, now)
+  await update($, view, prev => (JSON.stringify(prev) === JSON.stringify(next) ? prev : next))
+
+  const resets = m.snap.rateLimits.map(r => (r.resetsAt === undefined ? NaN : Date.parse(r.resetsAt))).filter(t => t > now)
+  m.atReset?.cancel()
+  m.atReset = resets.length > 0 ? $.clock.after(Math.min(...resets) - now, () => void measure($, m)) : undefined
+}
+
+async function measure($: Engine, m: Meter) {
+  const usage = await $.session.usage()
+  m.snap = { context: usage.context, rateLimits: usage.rateLimits, cost: usage.cost }
+  await draw($, m)
 }
 
 export const register: Register = on => {
   const m: Meter = { snap: { rateLimits: [] } }
+  let refresh: Timer | undefined
 
   on('session.start', async ($, e, next) => {
     const result = await next(e)
-    const usage = await $.session.usage()
-    m.snap = { context: usage.context, rateLimits: usage.rateLimits, cost: usage.cost }
     m.lastTurn = undefined
-    await draw($, m)
+    await measure($, m)
+    refresh?.cancel()
+    refresh = $.clock.every(REFRESH_MS, () => void measure($, m))
     return result
   })
 
@@ -98,8 +120,9 @@ export const register: Register = on => {
       )
     }
 
-    const t = v.tokens
-    const ctxLevel = t === undefined ? 'success' : levelOf(t, WARM_CONTEXT, BIG_CONTEXT)
+    // Before the first response there is no context to measure yet: read it as empty.
+    const t = v.tokens ?? 0
+    const ctxLevel = levelOf(t, WARM_CONTEXT, BIG_CONTEXT)
     const cache =
       v.cacheReused === undefined ? (
         <Text dimColor>waiting for first reply</Text>
@@ -115,15 +138,9 @@ export const register: Register = on => {
         <Text wrap="truncate-end">
           <Text color="claude">░▒▓ </Text>
           <Text bold>CTX</Text>
-          {t === undefined ? (
-            <Text dimColor> --</Text>
-          ) : (
-            <Text>
-              {isWide ? gauge(v.percent ?? 0, 10, ctxLevel) : null}
-              <Text color={ctxLevel} bold> {tokens(t)}</Text>
-              <Text dimColor> {v.percent ?? 0}%</Text>
-            </Text>
-          )}
+          {isWide ? gauge(v.percent ?? 0, 10, ctxLevel) : null}
+          <Text color={ctxLevel} bold> {tokens(t)}</Text>
+          <Text dimColor> {v.percent ?? 0}%</Text>
           {v.limits.map(l => (
             <Text>
               {sep}

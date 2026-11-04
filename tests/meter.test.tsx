@@ -1,4 +1,4 @@
-import { expect, test } from 'claude-code/testing'
+import { expect, mock, test } from 'claude-code/testing'
 import type { TestBody } from 'claude-code/testing'
 import type { On } from 'claude-code'
 
@@ -32,20 +32,23 @@ const band = (surface: 'terminal' | 'desktop', bodyColumns = 120) => ({
 } as const)
 
 // Hooks here stand for the engine: they answer the mod's calls.
-function engine(on: On) {
+function engine(on: On, clock = mock.clock(on), answer = () => ({
+  startedAt: 0,
+  context: { tokens: 340_000, window: 1_000_000, percent: 34 } as { tokens?: number; window: number; percent?: number },
+  rateLimits: LIMITS as { kind: string; percentUsed: number; resetsAt?: string }[],
+  cost: { usd: 12.4 },
+})) {
   const seen = { toasts: [] as string[] }
   on('ui.status', () => ({ value: undefined }))
   on('ui.toast', (_, e) => {
     seen.toasts.push(e.text)
     return { value: undefined }
   })
-  on('session.usage', () => ({
-    value: { startedAt: 0, context: { tokens: 340_000, window: 1_000_000, percent: 34 }, rateLimits: LIMITS, cost: { usd: 12.4 } },
-  }))
+  on('session.usage', () => ({ value: answer() }))
   on('session.start', (_, e) => ({ cwd: e.cwd }))
   on('session.measure', (_, e) => ({ changed: e.changed }))
   on('turn.complete', (_, e) => ({ text: e.answer }))
-  return seen
+  return { ...seen, clock }
 }
 
 const start = { cwd: '/', surface: 'terminal' as const, isInteractive: true }
@@ -126,4 +129,42 @@ test('the meter shows no pop-ups', async ($, on) => {
   })
   await $.turn.complete(turn(usage(1_000, 300_000)))
   expect(seen.toasts).toEqual([])
+})
+
+test('before the first response the context reads as empty', async ($, on) => {
+  engine(on, undefined, () => ({ startedAt: 0, context: { window: 1_000_000 }, rateLimits: [], cost: { usd: 0 } }))
+  await $.session.start(start)
+
+  expect((await meterText($))?.text).toContain('CTX ▱▱▱▱▱▱▱▱▱▱ 0 0%')
+})
+
+test('a window that reset while idle drops to zero without a new response', async ($, on) => {
+  const { clock } = engine(on, mock.clock(on, { now: Date.parse('2026-11-04T10:00:00Z') }), () => ({
+    startedAt: 0,
+    context: { tokens: 340_000, window: 1_000_000, percent: 34 },
+    rateLimits: [
+      { kind: 'five_hour', percentUsed: 92, resetsAt: '2026-11-04T12:00:00Z' },
+      { kind: 'seven_day', percentUsed: 39.4, resetsAt: '2026-11-08T00:00:00Z' },
+    ],
+    cost: { usd: 12.4 },
+  }))
+  await $.session.start(start)
+  expect((await meterText($))?.text).toContain('5H ▰▰▰▰▰ 92%')
+
+  await clock.advance(2 * 60 * 60 * 1000)
+  const text = (await meterText($))?.text ?? ''
+  expect(text).toContain('5H ▱▱▱▱▱ 0%')
+  expect(text).toContain('7D ▰▰▱▱▱ 39%')
+})
+
+test('the meter waits an hour before re-reading usage while idle', async ($, on) => {
+  let used = 24
+  const { clock } = engine(on, undefined, () => ({ startedAt: 0, context: { tokens: 340_000, window: 1_000_000, percent: 34 }, rateLimits: [{ kind: 'five_hour', percentUsed: used }], cost: { usd: 12.4 } }))
+  await $.session.start(start)
+
+  used = 61
+  await clock.advance(59 * 60 * 1000)
+  expect((await meterText($))?.text).toContain('5H ▰▱▱▱▱ 24%')
+  await clock.advance(60 * 60 * 1000)
+  expect((await meterText($))?.text).toContain('5H ▰▰▰▱▱ 61%')
 })

@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src=".claude-plugin/icon.png" alt="" width="88">
+
 # ░▒▓ light ▓▒░
 
 **A live meter for Claude Code.**
@@ -48,9 +50,6 @@ claude plugin install light --marketplace piotrmadry/light
 
 In the desktop app, where `/plugin` doesn't run: click **+** next to the prompt box, then **Plugins**, **Add marketplace** with `piotrmadry/light`, then **Add plugin**.
 
-> [!NOTE]
-> While this repository is private, installing works only for people invited to it on GitHub whose machine already has a git credential for github.com: an SSH key, or `gh auth login` followed by `gh auth setup-git`. The install never asks for one.
-
 ## Using it
 
 - It updates after every reply. There's nothing to configure.
@@ -76,6 +75,10 @@ claude --plugin-dir .      # start Claude Code with your local copy
 ```
 
 The whole meter is one file: [`hooks/register.tsx`](hooks/register.tsx).
+
+## Contributing
+
+Issues and pull requests are welcome. If something looks off in your terminal, open an issue with a screenshot and the output of `claude --version`. Changes are listed in the [changelog](CHANGELOG.md).
 
 ## License
 

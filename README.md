@@ -57,7 +57,7 @@ In the desktop app, where `/plugin` doesn't run: click **+** next to the prompt 
 - Click `[-]` at the right edge of the band to collapse it.
 - In terminals narrower than 90 columns, the bars hide and the numbers stay.
 
-Update with `claude plugin update light@light` (then restart Claude Code), and remove it with `claude plugin uninstall light@light`.
+Update with `claude plugin update light@piotrmadry` (then restart Claude Code), and remove it with `claude plugin uninstall light@piotrmadry`.
 
 ## It costs nothing
 

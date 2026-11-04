@@ -1,0 +1,8 @@
+{
+  "name": "light",
+  "version": "0.1.0",
+  "description": "A retro live meter above the Claude Code prompt: context size, rate limits, cache reuse and cost",
+  "author": { "name": "Piotr Mądry" },
+  "license": "MIT",
+  "types": "./types/index.d.ts"
+}

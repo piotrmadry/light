@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="176" viewBox="0 0 960 176" role="img" aria-label="Three meter states: a fresh session in green, a heavy session in yellow, and a session past 200k tokens with a rebuilt cache in red">
+  <style>
+    text { font-family: "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace; font-size: 14px; fill: #c9d1d9; white-space: pre; }
+    .label { fill: #8b949e; font-size: 12px; letter-spacing: 0.08em; }
+    .dim { fill: #6e7681; }
+    .bold { font-weight: 700; fill: #e6edf3; }
+    .claude { fill: #d97757; }
+    .ok { fill: #4eba65; }
+    .warn { fill: #e3b341; }
+    .bad { fill: #f47067; }
+  </style>
+  <rect width="960" height="176" rx="12" fill="#0d1117"/>
+  <rect x="0.5" y="0.5" width="959" height="175" rx="12" fill="none" stroke="#30363d"/>
+
+  <text x="28" y="44" class="label">FRESH</text>
+  <text x="168" y="44" xml:space="preserve"><tspan class="claude">░▒▓ </tspan><tspan class="bold">CTX</tspan> <tspan class="dim">▱▱▱▱▱▱▱▱▱▱</tspan><tspan class="ok" font-weight="700"> 38k</tspan><tspan class="dim"> 4%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">5H</tspan> <tspan class="ok">▰</tspan><tspan class="dim">▱▱▱▱</tspan><tspan class="ok"> 18%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">CACHE </tspan><tspan class="ok">✔ 97% reused</tspan><tspan class="dim"> │ $0.42</tspan><tspan class="claude"> ▓▒░</tspan></text>
+
+  <text x="28" y="96" class="label">GETTING HEAVY</text>
+  <text x="168" y="96" xml:space="preserve"><tspan class="claude">░▒▓ </tspan><tspan class="bold">CTX</tspan> <tspan class="warn">▰▰</tspan><tspan class="dim">▱▱▱▱▱▱▱▱</tspan><tspan class="warn" font-weight="700"> 164k</tspan><tspan class="dim"> 16%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">5H</tspan> <tspan class="warn">▰▰▰</tspan><tspan class="dim">▱▱</tspan><tspan class="warn"> 57%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">CACHE </tspan><tspan class="ok">✔ 99% reused</tspan><tspan class="dim"> │ $4.10</tspan><tspan class="claude"> ▓▒░</tspan></text>
+
+  <text x="28" y="148" class="label">TIME TO /CLEAR</text>
+  <text x="168" y="148" xml:space="preserve"><tspan class="claude">░▒▓ </tspan><tspan class="bold">CTX</tspan> <tspan class="bad">▰▰▰▰</tspan><tspan class="dim">▱▱▱▱▱▱</tspan><tspan class="bad" font-weight="700"> 412k</tspan><tspan class="dim"> 41%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">5H</tspan> <tspan class="bad">▰▰▰▰</tspan><tspan class="dim">▱</tspan><tspan class="bad"> 86%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">CACHE </tspan><tspan class="bad">✘ rebuilt 412k</tspan><tspan class="dim"> │ $18.70</tspan><tspan class="claude"> ▓▒░</tspan></text>
+</svg>

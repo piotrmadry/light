@@ -1,0 +1,12 @@
+{
+  "name": "light",
+  "owner": { "name": "Piotr Mądry" },
+  "description": "light: a retro live meter for Claude Code",
+  "plugins": [
+    {
+      "name": "light",
+      "source": "./",
+      "description": "A retro live meter above the Claude Code prompt: context size, rate limits, cache reuse and cost"
+    }
+  ]
+}

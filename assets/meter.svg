@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="232" viewBox="0 0 960 232" role="img" aria-label="light: a live meter above the Claude Code prompt showing context 192k 19%, 5-hour limit 13%, weekly limit 9%, cache 100% reused, cost $5.09">
+  <style>
+    text { font-family: "SF Mono", Menlo, Consolas, "DejaVu Sans Mono", "Liberation Mono", monospace; font-size: 15px; fill: #c9d1d9; white-space: pre; }
+    .dim { fill: #6e7681; }
+    .bold { font-weight: 700; fill: #e6edf3; }
+    .claude { fill: #d97757; }
+    .ok { fill: #4eba65; }
+    .warn { fill: #e3b341; }
+  </style>
+  <rect width="960" height="232" rx="12" fill="#0d1117"/>
+  <rect x="0.5" y="0.5" width="959" height="231" rx="12" fill="none" stroke="#30363d"/>
+  <circle cx="24" cy="22" r="5.5" fill="#3d444d"/>
+  <circle cx="44" cy="22" r="5.5" fill="#3d444d"/>
+  <circle cx="64" cy="22" r="5.5" fill="#3d444d"/>
+
+  <text x="28" y="66" xml:space="preserve"><tspan class="claude">⏺</tspan> Refactored the parser and updated the tests. All 42 pass.</text>
+  <text x="28" y="92" xml:space="preserve" class="dim">  ⎿  3 files changed, 118 insertions(+), 64 deletions(-)</text>
+
+  <text x="480" y="142" text-anchor="middle" xml:space="preserve"><tspan class="claude">░▒▓ </tspan><tspan class="bold">CTX</tspan> <tspan class="warn">▰▰</tspan><tspan class="dim">▱▱▱▱▱▱▱▱</tspan><tspan class="warn" font-weight="700"> 192k</tspan><tspan class="dim"> 19%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">5H</tspan> <tspan class="ok">▰</tspan><tspan class="dim">▱▱▱▱</tspan><tspan class="ok"> 13%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">7D</tspan> <tspan class="dim">▱▱▱▱▱</tspan><tspan class="ok"> 9%</tspan><tspan class="dim"> │ </tspan><tspan class="bold">CACHE </tspan><tspan class="ok">✔ 100% reused</tspan><tspan class="dim"> │ $5.09</tspan><tspan class="claude"> ▓▒░</tspan></text>
+
+  <rect x="24" y="164" width="912" height="44" rx="6" fill="none" stroke="#3d444d"/>
+  <text x="42" y="191" xml:space="preserve"><tspan class="dim">&gt;</tspan> </text>
+  <rect x="62" y="177" width="9" height="18" fill="#c9d1d9" opacity="0.85"/>
+</svg>
